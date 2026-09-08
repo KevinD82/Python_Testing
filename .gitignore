@@ -1,7 +1,24 @@
-bin
-include
-lib
-.Python
-tests/
+# Environnement virtuel
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Ruff
+.ruff_cache/
+
+# VS Code
+.vscode/
+
+# Divers
 .envrc
-__pycache__
+.DS_Store
+Thumbs.db
