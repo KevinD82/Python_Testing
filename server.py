@@ -100,7 +100,14 @@ def purchasePlaces():
     return render_template('welcome.html', club=club, competitions=competitions)
 
 
+# Fonctionnalité manquante (phase 2) : tableau public des points.
 # TODO: Add route for points display
+
+@app.route('/points')
+def points_board():
+    """Tableau public et en lecture seule des points de tous les clubs.
+    Accessible sans connexion."""
+    return render_template('points.html', clubs=clubs)
 
 
 @app.route('/logout')
