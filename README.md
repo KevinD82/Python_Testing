@@ -1,51 +1,232 @@
-# gudlift-registration
+# GUDLFT Registration
 
-1. Why
+## Présentation
 
+GUDLFT Registration est une application web développée avec Flask permettant aux secrétaires de clubs de réserver des places pour des compétitions sportives.
 
-    This is a proof of concept (POC) project to show a light-weight version of our competition booking platform. The aim is the keep things as light as possible, and use feedback from the users to iterate.
+Cette application constitue un prototype simplifié du système de réservation utilisé par GUDLFT pour la gestion des compétitions régionales.
 
-2. Getting Started
+L'application permet :
 
-    This project uses the following technologies:
+- La connexion des secrétaires de club via leur adresse e-mail.
+- La consultation des compétitions disponibles.
+- La réservation de places pour une compétition.
+- La consultation des points des clubs.
+- La déconnexion de l'application.
 
-    * Python v3.x+
+Les données sont actuellement stockées dans des fichiers JSON afin d'éviter l'utilisation d'une base de données durant cette phase du projet.
 
-    * [Flask](https://flask.palletsprojects.com/en/1.1.x/)
+---
 
-        Whereas Django does a lot of things for us out of the box, Flask allows us to add only what we need. 
-     
+## Technologies utilisées
 
-    * [Virtual environment](https://virtualenv.pypa.io/en/stable/installation.html)
+- Python 3.14
+- Flask
+- Pytest
+- Coverage
+- Ruff
 
-        This ensures you'll be able to install the correct packages without interfering with Python on your machine.
+---
 
-        Before you begin, please ensure you have this installed globally. 
+## Installation
 
+### Cloner le dépôt
 
-3. Installation
+```bash
+git clone <url-du-repo>
+cd Python_Testing
+```
 
-    - After cloning, change into the directory and type <code>virtualenv .</code>. This will then set up a a virtual python environment within that directory.
+### Créer un environnement virtuel
 
-    - Next, type <code>source bin/activate</code>. You should see that your command prompt has changed to the name of the folder. This means that you can install packages in here without affecting affecting files outside. To deactivate, type <code>deactivate</code>
+```bash
+python -m venv venv
+```
 
-    - Rather than hunting around for the packages you need, you can install in one step. Type <code>pip install -r requirements.txt</code>. This will install all the packages listed in the respective file. If you install a package, make sure others know by updating the requirements.txt file. An easy way to do this is <code>pip freeze > requirements.txt</code>
+### Activer l'environnement virtuel
 
-    - Flask requires that you set an environmental variable to the python file. However you do that, you'll want to set the file to be <code>server.py</code>. Check [here](https://flask.palletsprojects.com/en/1.1.x/quickstart/#a-minimal-application) for more details
+#### Windows PowerShell
 
-    - You should now be ready to test the application. In the directory, type either <code>flask run</code> or <code>python -m flask run</code>. The app should respond with an address you should be able to go to using your browser.
+```powershell
+.\venv\Scripts\Activate.ps1
+```
 
-4. Current Setup
+#### Linux / macOS
 
-    The app is powered by [JSON files](https://www.tutorialspoint.com/json/json_quick_guide.htm). This is to get around having a DB until we actually need one. The main ones are:
-     
-    * competitions.json - list of competitions
-    * clubs.json - list of clubs with relevant information. You can look here to see what email addresses the app will accept for login.
+```bash
+source venv/bin/activate
+```
 
-5. Testing
+Lorsque l'environnement est activé, l'invite de commande doit afficher :
 
-    You are free to use whatever testing framework you like-the main thing is that you can show what tests you are using.
+```text
+(venv)
+```
 
-    We also like to show how well we're testing, so there's a module called 
-    [coverage](https://coverage.readthedocs.io/en/coverage-5.1/) you should add to your project.
+### Installer les dépendances
 
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Lancement de l'application
+
+### Windows PowerShell
+
+```powershell
+$env:FLASK_APP="server.py"
+```
+
+### Linux / macOS
+
+```bash
+export FLASK_APP=server.py
+```
+
+Puis démarrer le serveur :
+
+```bash
+flask run
+```
+
+ou
+
+```bash
+python -m flask run
+```
+
+L'application sera accessible à l'adresse :
+
+```text
+http://127.0.0.1:5000
+```
+
+---
+
+## Comptes de test
+
+Les adresses suivantes peuvent être utilisées pour se connecter :
+
+| Club | Email |
+|--------|--------|
+| Simply Lift | john@simplylift.co |
+| Iron Temple | admin@irontemple.com |
+| She Lifts | kate@shelifts.co.uk |
+
+---
+
+## Structure du projet
+
+```text
+Python_Testing/
+│
+├── templates/
+│   ├── index.html
+│   ├── welcome.html
+│   └── booking.html
+│
+├── tests/
+│   └── test_server.py
+│
+├── clubs.json
+├── competitions.json
+├── server.py
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
+
+---
+
+## Données de l'application
+
+### clubs.json
+
+Contient :
+
+- le nom du club ;
+- son adresse e-mail ;
+- son nombre de points.
+
+### competitions.json
+
+Contient :
+
+- le nom de la compétition ;
+- la date ;
+- le nombre de places disponibles.
+
+---
+
+## Exécution des tests
+
+Lancer l'ensemble des tests :
+
+```bash
+pytest
+```
+
+Mode détaillé :
+
+```bash
+pytest -v
+```
+
+---
+
+## Couverture de tests
+
+Générer la couverture :
+
+```bash
+coverage run -m pytest
+```
+
+Afficher le rapport :
+
+```bash
+coverage report
+```
+
+Générer un rapport HTML :
+
+```bash
+coverage html
+```
+
+Le rapport sera disponible dans :
+
+```text
+htmlcov/index.html
+```
+
+---
+
+## Qualité du code
+
+Vérification avec Ruff :
+
+```bash
+ruff check .
+```
+
+---
+
+## Objectifs du projet
+
+- Corriger les anomalies présentes dans l'application.
+- Ajouter les fonctionnalités demandées dans la phase 2.
+- Atteindre un minimum de 60 % de couverture de code.
+- Produire un rapport de tests.
+- Produire un rapport de performances avec Locust.
+- Respecter les bonnes pratiques Git et GitHub.
+
+---
+
+## Auteur
+
+Projet réalisé dans le cadre de la formation Développeur d'Application Python OpenClassrooms.
+
+Kevin Delcroix
