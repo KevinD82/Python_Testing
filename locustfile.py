@@ -15,7 +15,7 @@ Puis ouvrir http://localhost:8089 et configurer :
     - Host: http://127.0.0.1:5000
 """
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 
 class ClubSecretaryUser(HttpUser):

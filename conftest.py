@@ -1,7 +1,7 @@
 import pytest
 
-from server import app, loadClubs, loadCompetitions
 import server
+from server import app, loadClubs, loadCompetitions
 
 
 @pytest.fixture
