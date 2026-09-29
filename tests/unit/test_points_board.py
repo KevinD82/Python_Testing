@@ -2,12 +2,16 @@
 
 
 def test_points_board_accessible_without_login(client):
+    # Requête directe sur la vue publique des points
     response = client.get('/points')
+    # Vérifie que la page est accessible sans authentification (200 OK)
     assert response.status_code == 200
 
 
 def test_points_board_lists_all_clubs_with_their_points(client):
+    # Charge le tableau public
     response = client.get('/points')
+    # Vérifie la présence de tous les clubs et de leur solde respectif
     assert response.status_code == 200
     assert b"Simply Lift" in response.data
     assert b"13" in response.data
@@ -18,6 +22,8 @@ def test_points_board_lists_all_clubs_with_their_points(client):
 
 
 def test_points_board_has_no_booking_or_purchase_links(client):
+    # Inspecte la page '/points'
     response = client.get('/points')
+    # Vérifie l'absence de toute action de réservation (mode lecture seule)
     assert b"/purchasePlaces" not in response.data
     assert b"/book/" not in response.data
