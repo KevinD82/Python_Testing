@@ -30,4 +30,4 @@ def test_book_with_unknown_club_shows_error_message(client):
     response = client.get('/book/Spring Festival/Club Inconnu', follow_redirects=True)
     # Vérifie l'affichage du message flash indiquant que l'élément est introuvable
     assert response.status_code == 200
-    assert "introuvable".encode('utf-8') in response.data.lower()
+    assert "introuvable".encode('utf-8') in response.data.lower()  # noqa: UP012
