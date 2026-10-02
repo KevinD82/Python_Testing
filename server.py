@@ -87,7 +87,9 @@ def purchasePlaces():
     availablePlaces = int(competition['numberOfPlaces'])
     clubPoints = int(club['points'])
 
-    if placesRequired > 12:
+    if placesRequired < 1:
+        flash("Veuillez indiquer un nombre de places positif (au moins 1).")
+    elif placesRequired > 12:
         flash("Vous ne pouvez pas réserver plus de 12 places par compétition.")
     elif placesRequired > availablePlaces:
         flash("Il ne reste pas assez de places disponibles pour cette compétition.")
