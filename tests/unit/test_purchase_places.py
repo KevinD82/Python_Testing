@@ -124,3 +124,20 @@ def test_purchase_with_unknown_club_or_competition_does_not_crash(client):
     # Vérifie la redirection de sécurité vers la racine
     assert response.status_code == 302
     assert response.location == '/'
+
+def test_cannot_book_zero_or_negative_places(client):
+    """Sécurité : un nombre de places nul ou négatif ne doit jamais être
+    accepté, sous peine de permettre un gain artificiel de points."""
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '-5'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"positif" in response.data.lower() or b"au moins" in response.data.lower()
+
+    # Vérifie qu'aucune donnée n'a été modifiée (ni augmentée, ni diminuée)
+    competition = get_competition('Spring Festival')
+    club = get_club('Simply Lift')
+    assert int(competition['numberOfPlaces']) == 25
+    assert int(club['points']) == 13
