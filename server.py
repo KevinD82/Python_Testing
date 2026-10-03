@@ -20,6 +20,10 @@ app.secret_key = 'something_special'
 
 competitions = loadCompetitions()
 clubs = loadClubs()
+# Suivi des réservations déjà effectuées, par club et par compétition,
+# pour appliquer la limite de 12 places sur le CUMUL (et non sur une
+# seule requête). Clé : tuple (nom du club, nom de la compétition).
+bookings = {}
 
 @app.route('/')
 def index():
@@ -66,16 +70,6 @@ def book(competition, club):
 
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    # Code d'origine (bugs) : aucune vérification des places disponibles,
-    # aucune limite de 12 places, aucune vérification des points, et les
-    # points n'étaient jamais déduits.
-    # competition = [c for c in competitions if c['name'] == request.form['competition']][0]
-    # club = [c for c in clubs if c['name'] == request.form['club']][0]
-    # placesRequired = int(request.form['places'])
-    # competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    # flash('Great-booking complete!')
-    # return render_template('welcome.html', club=club, competitions=competitions)
-
     competition = next((c for c in competitions if c['name'] == request.form['competition']), None)
     club = next((c for c in clubs if c['name'] == request.form['club']), None)
 
@@ -86,10 +80,11 @@ def purchasePlaces():
     placesRequired = int(request.form['places'])
     availablePlaces = int(competition['numberOfPlaces'])
     clubPoints = int(club['points'])
+    alreadyBooked = bookings.get((club['name'], competition['name']), 0)
 
     if placesRequired < 1:
         flash("Veuillez indiquer un nombre de places positif (au moins 1).")
-    elif placesRequired > 12:
+    elif alreadyBooked + placesRequired > 12:
         flash("Vous ne pouvez pas réserver plus de 12 places par compétition.")
     elif placesRequired > availablePlaces:
         flash("Il ne reste pas assez de places disponibles pour cette compétition.")
@@ -98,6 +93,7 @@ def purchasePlaces():
     else:
         competition['numberOfPlaces'] = availablePlaces - placesRequired
         club['points'] = clubPoints - placesRequired
+        bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
         flash('Great-booking complete!')
 
     return render_template('welcome.html', club=club, competitions=competitions)
