@@ -141,3 +141,39 @@ def test_cannot_book_zero_or_negative_places(client):
     club = get_club('Simply Lift')
     assert int(competition['numberOfPlaces']) == 25
     assert int(club['points']) == 13
+def test_cannot_exceed_twelve_places_across_multiple_bookings(client):
+    """Sécurité métier : la limite de 12 places s'applique au CUMUL des
+    réservations d'un club pour une compétition, pas à une seule requête.
+    Deux commandes de 6 + 7 doivent être refusées à la deuxième, car
+    6 + 7 = 13 > 12.
+
+    Le club est crédité à 20 points pour isoler ce test de la règle des
+    points suffisants : seule la règle du cumul de places doit être
+    testée ici.
+    """
+    club = get_club('Simply Lift')
+    club['points'] = 20
+
+    # Première réservation : 6 places, doit réussir
+    first = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '6'},
+        follow_redirects=True,
+    )
+    assert first.status_code == 200
+    assert b"complete" in first.data.lower()
+
+    # Deuxième réservation : 7 places de plus (6 + 7 = 13 > 12), doit être refusée
+    second = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '7'},
+        follow_redirects=True,
+    )
+    assert second.status_code == 200
+    assert "12 places".encode('utf-8') in second.data
+
+    # Seule la première réservation doit avoir modifié les données
+    competition = get_competition('Spring Festival')
+    club = get_club('Simply Lift')
+    assert int(competition['numberOfPlaces']) == 19  
+    assert int(club['points']) == 14                  

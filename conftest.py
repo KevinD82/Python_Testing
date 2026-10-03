@@ -18,4 +18,5 @@ def reset_data():
     (purchasePlaces modifie ces objets en mémoire)."""
     server.clubs = loadClubs()
     server.competitions = loadCompetitions()
+    server.bookings = {}
     yield
