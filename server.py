@@ -15,6 +15,9 @@ def loadCompetitions():
          listOfCompetitions = json.load(comps)['competitions']
          return listOfCompetitions
 
+def isCompetitionPast(competition):
+    date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
+    return date_competition < datetime.now()
 
 app = Flask(__name__)
 app.secret_key = 'something_special'
@@ -82,9 +85,8 @@ def purchasePlaces():
     availablePlaces = int(competition['numberOfPlaces'])
     clubPoints = int(club['points'])
     alreadyBooked = bookings.get((club['name'], competition['name']), 0)
-    date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
 
-    if date_competition < datetime.now():
+    if isCompetitionPast(competition):
         flash("Cette compétition est terminée et ne peut plus être réservée.")
     elif placesRequired < 1:
         flash("Veuillez indiquer un nombre de places positif (au moins 1).")
