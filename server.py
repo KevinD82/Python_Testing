@@ -52,16 +52,6 @@ def showSummary():
 
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
-    # Code d'origine (bug) : plantait avec une IndexError si le club ou
-    # la compétition ne correspondait à aucune entrée existante.
-    # foundClub = [c for c in clubs if c['name'] == club][0]
-    # foundCompetition = [c for c in competitions if c['name'] == competition][0]
-    # if foundClub and foundCompetition:
-    #     return render_template('booking.html',club=foundClub,competition=foundCompetition)
-    # else:
-    #     flash("Something went wrong-please try again")
-    #     return render_template('welcome.html', club=club, competitions=competitions)
-
     foundClub = next((c for c in clubs if c['name'] == club), None)
     foundCompetition = next((c for c in competitions if c['name'] == competition), None)
 
@@ -69,6 +59,10 @@ def book(competition, club):
         flash("Compétition ou club introuvable.")
         return redirect(url_for('index'))
 
+    if isCompetitionPast(foundCompetition):
+        flash("Cette compétition est terminée et ne peut plus être réservée.")
+        return redirect(url_for('index'))
+    
     return render_template('booking.html', club=foundClub, competition=foundCompetition)
 
 
