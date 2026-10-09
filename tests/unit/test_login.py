@@ -52,3 +52,15 @@ def test_login_with_empty_email_redirects_with_error_message(client):
     # Vérifie la redirection immédiate vers l'accueil
     assert response.status_code == 302
     assert response.location == '/'
+
+
+def test_welcome_page_hides_past_competitions(client):
+    """Une compétition passée ne doit plus apparaître dans la liste du secrétaire."""
+    from server import competitions
+    competition = next(c for c in competitions if c['name'] == 'Spring Festival')
+    competition['date'] = "2020-01-01 10:00:00"
+
+    response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
+    assert response.status_code == 200
+    assert b"Spring Festival" not in response.data
+    assert b"Fall Classic" in response.data

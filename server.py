@@ -1,6 +1,7 @@
 import json
 
 from flask import Flask, flash, redirect, render_template, request, url_for
+from datetime import datetime
 
 
 def loadClubs():
@@ -13,6 +14,15 @@ def loadCompetitions():
     with open('competitions.json') as comps:
          listOfCompetitions = json.load(comps)['competitions']
          return listOfCompetitions
+
+
+def isCompetitionPast(competition):
+    date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
+    return date_competition < datetime.now()
+
+
+def getUpcomingCompetitions():
+    return [c for c in competitions if not isCompetitionPast(c)]
 
 
 app = Flask(__name__)
@@ -43,21 +53,11 @@ def showSummary():
         flash("Désolé, cette adresse e-mail est introuvable.")
         return redirect(url_for('index'))
 
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
 
 
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
-    # Code d'origine (bug) : plantait avec une IndexError si le club ou
-    # la compétition ne correspondait à aucune entrée existante.
-    # foundClub = [c for c in clubs if c['name'] == club][0]
-    # foundCompetition = [c for c in competitions if c['name'] == competition][0]
-    # if foundClub and foundCompetition:
-    #     return render_template('booking.html',club=foundClub,competition=foundCompetition)
-    # else:
-    #     flash("Something went wrong-please try again")
-    #     return render_template('welcome.html', club=club, competitions=competitions)
-
     foundClub = next((c for c in clubs if c['name'] == club), None)
     foundCompetition = next((c for c in competitions if c['name'] == competition), None)
 
@@ -65,6 +65,10 @@ def book(competition, club):
         flash("Compétition ou club introuvable.")
         return redirect(url_for('index'))
 
+    if isCompetitionPast(foundCompetition):
+        flash("Cette compétition est terminée et ne peut plus être réservée.")
+        return redirect(url_for('index'))
+    
     return render_template('booking.html', club=foundClub, competition=foundCompetition)
 
 
@@ -82,7 +86,9 @@ def purchasePlaces():
     clubPoints = int(club['points'])
     alreadyBooked = bookings.get((club['name'], competition['name']), 0)
 
-    if placesRequired < 1:
+    if isCompetitionPast(competition):
+        flash("Cette compétition est terminée et ne peut plus être réservée.")
+    elif placesRequired < 1:
         flash("Veuillez indiquer un nombre de places positif (au moins 1).")
     elif alreadyBooked + placesRequired > 12:
         flash("Vous ne pouvez pas réserver plus de 12 places par compétition.")
@@ -96,7 +102,7 @@ def purchasePlaces():
         bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
         flash('Great-booking complete!')
 
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
 
 
 # Fonctionnalité manquante (phase 2) : tableau public des points.
@@ -112,3 +118,4 @@ def points_board():
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
+
