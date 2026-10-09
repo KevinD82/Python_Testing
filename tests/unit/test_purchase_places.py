@@ -197,3 +197,18 @@ def test_cannot_book_past_competition(client):
     club = get_club('Simply Lift')
     assert int(competition['numberOfPlaces']) == 25
     assert int(club['points']) == 13
+
+
+def test_welcome_page_after_booking_hides_past_competitions(client):
+    """Après une réservation, la liste ne doit pas réafficher une compétition passée."""
+    past = get_competition('Spring Festival')
+    past['date'] = "2020-01-01 10:00:00"
+
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Fall Classic', 'club': 'Simply Lift', 'places': '1'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"complete" in response.data.lower()
+    assert b"Spring Festival" not in response.data
