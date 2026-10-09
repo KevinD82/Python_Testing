@@ -15,9 +15,15 @@ def loadCompetitions():
          listOfCompetitions = json.load(comps)['competitions']
          return listOfCompetitions
 
+
 def isCompetitionPast(competition):
     date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
     return date_competition < datetime.now()
+
+
+def getUpcomingCompetitions():
+    return [c for c in competitions if not isCompetitionPast(c)]
+
 
 app = Flask(__name__)
 app.secret_key = 'something_special'
@@ -46,10 +52,8 @@ def showSummary():
     if not club:
         flash("Désolé, cette adresse e-mail est introuvable.")
         return redirect(url_for('index'))
-    
-    upcomingCompetitions = [c for c in competitions if not isCompetitionPast(c)]
 
-    return render_template('welcome.html', club=club, competitions=upcomingCompetitions)
+    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
 
 
 @app.route('/book/<competition>/<club>')
@@ -98,7 +102,7 @@ def purchasePlaces():
         bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
         flash('Great-booking complete!')
 
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
 
 
 # Fonctionnalité manquante (phase 2) : tableau public des points.
