@@ -31,3 +31,20 @@ def test_book_with_unknown_club_shows_error_message(client):
     # Vérifie l'affichage du message flash indiquant que l'élément est introuvable
     assert response.status_code == 200
     assert "introuvable".encode('utf-8') in response.data.lower()  # noqa: UP012
+
+
+def test_book_page_refused_for_past_competition(client):
+    """La page de réservation ne doit pas s'ouvrir pour une compétition passée."""
+    # Force une date passée (reset_data la restaurera après le test)
+    from server import competitions
+    competition = next(c for c in competitions if c['name'] == 'Spring Festival')
+    competition['date'] = "2020-01-01 10:00:00"
+
+    # Une URL tapée à la main sur une compétition passée doit rediriger vers l'accueil
+    response = client.get('/book/Spring Festival/Simply Lift')
+    assert response.status_code == 302
+    assert response.location == '/'
+
+    # Suit la redirection pour vérifier le message affiché
+    followed = client.get('/book/Spring Festival/Simply Lift', follow_redirects=True)
+    assert "terminée".encode('utf-8') in followed.data  # noqa: UP012

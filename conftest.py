@@ -1,7 +1,7 @@
 import pytest
 
-from server import app, loadClubs, loadCompetitions
 import server
+from server import app, loadClubs, loadCompetitions
 
 
 @pytest.fixture
@@ -18,4 +18,5 @@ def reset_data():
     (purchasePlaces modifie ces objets en mémoire)."""
     server.clubs = loadClubs()
     server.competitions = loadCompetitions()
+    server.bookings = {}
     yield

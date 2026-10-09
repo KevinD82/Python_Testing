@@ -124,3 +124,91 @@ def test_purchase_with_unknown_club_or_competition_does_not_crash(client):
     # Vérifie la redirection de sécurité vers la racine
     assert response.status_code == 302
     assert response.location == '/'
+
+def test_cannot_book_zero_or_negative_places(client):
+    """Sécurité : un nombre de places nul ou négatif ne doit jamais être
+    accepté, sous peine de permettre un gain artificiel de points."""
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '-5'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"positif" in response.data.lower() or b"au moins" in response.data.lower()
+
+    # Vérifie qu'aucune donnée n'a été modifiée (ni augmentée, ni diminuée)
+    competition = get_competition('Spring Festival')
+    club = get_club('Simply Lift')
+    assert int(competition['numberOfPlaces']) == 25
+    assert int(club['points']) == 13
+
+def test_cannot_exceed_twelve_places_across_multiple_bookings(client):
+    """Sécurité métier : la limite de 12 places s'applique au CUMUL des
+    réservations d'un club pour une compétition, pas à une seule requête.
+    Deux commandes de 6 + 7 doivent être refusées à la deuxième, car
+    6 + 7 = 13 > 12.
+
+    Le club est crédité à 20 points pour isoler ce test de la règle des
+    points suffisants : seule la règle du cumul de places doit être
+    testée ici.
+    """
+    club = get_club('Simply Lift')
+    club['points'] = 20
+
+    # Première réservation : 6 places, doit réussir
+    first = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '6'},
+        follow_redirects=True,
+    )
+    assert first.status_code == 200
+    assert b"complete" in first.data.lower()
+
+    # Deuxième réservation : 7 places de plus (6 + 7 = 13 > 12), doit être refusée
+    second = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '7'},
+        follow_redirects=True,
+    )
+    assert second.status_code == 200
+    assert "12 places".encode('utf-8') in second.data
+
+    # Seule la première réservation doit avoir modifié les données
+    competition = get_competition('Spring Festival')
+    club = get_club('Simply Lift')
+    assert int(competition['numberOfPlaces']) == 19  
+    assert int(club['points']) == 14                  
+
+def test_cannot_book_past_competition(client):
+    """Une compétition dont la date est passée ne doit plus être réservable."""
+    # On force une date clairement passée (reset_data la restaurera après le test)
+    competition = get_competition('Spring Festival')
+    competition['date'] = "2020-01-01 10:00:00"
+
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '1'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "terminée".encode('utf-8') in response.data
+
+    # Rien ne doit avoir été modifié
+    club = get_club('Simply Lift')
+    assert int(competition['numberOfPlaces']) == 25
+    assert int(club['points']) == 13
+
+
+def test_welcome_page_after_booking_hides_past_competitions(client):
+    """Après une réservation, la liste ne doit pas réafficher une compétition passée."""
+    past = get_competition('Spring Festival')
+    past['date'] = "2020-01-01 10:00:00"
+
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Fall Classic', 'club': 'Simply Lift', 'places': '1'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"complete" in response.data.lower()
+    assert b"Spring Festival" not in response.data
