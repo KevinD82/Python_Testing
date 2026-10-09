@@ -46,8 +46,10 @@ def showSummary():
     if not club:
         flash("Désolé, cette adresse e-mail est introuvable.")
         return redirect(url_for('index'))
+    
+    upcomingCompetitions = [c for c in competitions if not isCompetitionPast(c)]
 
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=upcomingCompetitions)
 
 
 @app.route('/book/<competition>/<club>')
@@ -112,3 +114,4 @@ def points_board():
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
+
