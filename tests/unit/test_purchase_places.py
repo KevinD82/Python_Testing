@@ -53,7 +53,7 @@ def test_cannot_book_more_places_than_available(client):
     )
     # Vérifie que le message traite spécifiquement du manque de places
     assert response.status_code == 200
-    assert "disponibles".encode('utf-8') in response.data.lower()  # noqa: UP012
+    assert b"disponibles" in response.data.lower()
 
     # Vérifie qu'aucun changement n'a été appliqué aux données
     club = get_club('Simply Lift')

@@ -36,7 +36,7 @@ def test_login_with_unknown_email_redirects_with_error_message(client):
     )
     # Assure que le message d'erreur est affiché sur la page d'accueil
     assert followed.status_code == 200
-    assert "introuvable".encode('utf-8') in followed.data  # noqa: UP012
+    assert b"introuvable" in followed.data
 
 
 def test_login_with_missing_email_field_does_not_crash(client):
