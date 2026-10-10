@@ -1,4 +1,4 @@
-"""Tests unitaires - déconnexion. Branche test/coverage-improvements."""
+"""Tests d'intégration - déconnexion. Branche test/coverage-improvements."""
 
 
 def test_logout_redirects_to_index(client):
