@@ -1,7 +1,7 @@
 import json
+from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
-from datetime import datetime
 
 
 def loadClubs():
@@ -17,8 +17,8 @@ def loadCompetitions():
 
 
 def isCompetitionPast(competition):
-    date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S")
-    return date_competition < datetime.now()
+    date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S").astimezone()
+    return date_competition < datetime.now().astimezone()
 
 
 def getUpcomingCompetitions():

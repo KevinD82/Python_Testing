@@ -44,4 +44,4 @@ def test_book_page_refused_for_past_competition(client):
     assert response.location == '/'
 
     followed = client.get('/book/Spring Festival/Simply Lift', follow_redirects=True)
-    assert "terminée".encode('utf-8') in followed.data
+    assert "terminée".encode() in followed.data
