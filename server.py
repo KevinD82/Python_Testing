@@ -41,11 +41,6 @@ def index():
 
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
-    # Code d'origine (bug) : plantait avec une IndexError si l'email
-    # ne correspondait à aucun club.
-    # club = [club for club in clubs if club['email'] == request.form['email']][0]
-    # return render_template('welcome.html',club=club,competitions=competitions)
-
     email = request.form['email']
     club = next((c for c in clubs if c['email'] == email), None)
 
@@ -104,9 +99,6 @@ def purchasePlaces():
 
     return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
 
-
-# Fonctionnalité manquante (phase 2) : tableau public des points.
-# TODO: Add route for points display
 
 @app.route('/points')
 def points_board():
