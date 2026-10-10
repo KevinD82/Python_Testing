@@ -171,7 +171,7 @@ def test_cannot_exceed_twelve_places_across_multiple_bookings(client):
         follow_redirects=True,
     )
     assert second.status_code == 200
-    assert "12 places".encode('utf-8') in second.data
+    assert b"12 places" in second.data
 
     # Seule la première réservation doit avoir modifié les données
     competition = get_competition('Spring Festival')
@@ -191,7 +191,7 @@ def test_cannot_book_past_competition(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "terminée".encode('utf-8') in response.data
+    assert "terminée".encode() in response.data
 
     # Rien ne doit avoir été modifié
     club = get_club('Simply Lift')

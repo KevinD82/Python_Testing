@@ -47,4 +47,4 @@ def test_book_page_refused_for_past_competition(client):
 
     # Suit la redirection pour vérifier le message affiché
     followed = client.get('/book/Spring Festival/Simply Lift', follow_redirects=True)
-    assert "terminée".encode('utf-8') in followed.data  # noqa: UP012
+    assert "terminée".encode() in followed.data
