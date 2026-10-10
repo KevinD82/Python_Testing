@@ -1,4 +1,4 @@
-"""Tests unitaires - réservation de places. Branche bug/purchase-places-limits."""
+"""Tests d'intégration - réservation de places. Branche bug/purchase-places-limits."""
 
 
 def get_competition(name):

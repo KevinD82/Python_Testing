@@ -1,4 +1,4 @@
-"""Tests unitaires - route /book. Branche bug/book-route-crash."""
+"""Tests d'intégration - route /book. Branche bug/book-route-crash."""
 
 
 def test_book_with_valid_club_and_competition_shows_booking_page(client):

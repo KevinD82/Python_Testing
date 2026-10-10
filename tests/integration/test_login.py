@@ -1,4 +1,4 @@
-"""Tests unitaires - connexion (login). Branche fix/login-crash."""
+"""Tests d'intégration - connexion (login). Branche fix/login-crash."""
 
 
 def test_index_page_loads(client):
