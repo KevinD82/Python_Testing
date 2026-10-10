@@ -1,7 +1,7 @@
 import json
+from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
-from datetime import datetime
 
 
 def loadClubs():
