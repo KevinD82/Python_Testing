@@ -3,6 +3,8 @@ from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
+from booking_rules import validateBooking
+
 
 def loadClubs():
     with open('clubs.json') as c:
@@ -77,23 +79,21 @@ def purchasePlaces():
         return redirect(url_for('index'))
 
     placesRequired = int(request.form['places'])
-    availablePlaces = int(competition['numberOfPlaces'])
-    clubPoints = int(club['points'])
     alreadyBooked = bookings.get((club['name'], competition['name']), 0)
 
-    if isCompetitionPast(competition):
-        flash("Cette compétition est terminée et ne peut plus être réservée.")
-    elif placesRequired < 1:
-        flash("Veuillez indiquer un nombre de places positif (au moins 1).")
-    elif alreadyBooked + placesRequired > 12:
-        flash("Vous ne pouvez pas réserver plus de 12 places par compétition.")
-    elif placesRequired > availablePlaces:
-        flash("Il ne reste pas assez de places disponibles pour cette compétition.")
-    elif placesRequired > clubPoints:
-        flash("Votre club n'a pas assez de points pour réserver ce nombre de places.")
+    errorMessage = validateBooking(
+        placesRequired,
+        alreadyBooked,
+        int(competition['numberOfPlaces']),
+        int(club['points']),
+        isCompetitionPast(competition),
+    )
+
+    if errorMessage:
+        flash(errorMessage)
     else:
-        competition['numberOfPlaces'] = availablePlaces - placesRequired
-        club['points'] = clubPoints - placesRequired
+        competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
+        club['points'] = int(club['points']) - placesRequired
         bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
         flash('Great-booking complete!')
 
