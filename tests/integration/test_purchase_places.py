@@ -199,8 +199,8 @@ def test_cannot_book_past_competition(client):
     assert int(club['points']) == 13
 
 
-def test_welcome_page_after_booking_hides_past_competitions(client):
-    """Après une réservation, la liste ne doit pas réafficher une compétition passée."""
+def test_welcome_page_after_booking_shows_past_competition_without_booking_link(client):
+    """Après une réservation, une compétition passée reste visible, sans lien de réservation."""
     past = get_competition('Spring Festival')
     past['date'] = "2020-01-01 10:00:00"
 
@@ -211,4 +211,7 @@ def test_welcome_page_after_booking_hides_past_competitions(client):
     )
     assert response.status_code == 200
     assert b"complete" in response.data.lower()
-    assert b"Spring Festival" not in response.data
+    assert b"Spring Festival" in response.data
+    assert "terminée".encode() in response.data
+    assert b"/book/Spring%20Festival" not in response.data
+    assert b"/book/Fall%20Classic" in response.data
