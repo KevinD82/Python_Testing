@@ -54,13 +54,15 @@ def test_login_with_empty_email_redirects_with_error_message(client):
     assert response.location == '/'
 
 
-def test_welcome_page_hides_past_competitions(client):
-    """Une compétition passée ne doit plus apparaître dans la liste du secrétaire."""
+def test_welcome_page_shows_past_competition_without_booking_link(client):
+    """Une compétition passée reste visible, marquée terminée, sans lien de réservation."""
     from server import competitions
     competition = next(c for c in competitions if c['name'] == 'Spring Festival')
     competition['date'] = "2020-01-01 10:00:00"
 
     response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
     assert response.status_code == 200
-    assert b"Spring Festival" not in response.data
-    assert b"Fall Classic" in response.data
+    assert b"Spring Festival" in response.data
+    assert "terminée".encode() in response.data
+    assert b"/book/Spring%20Festival" not in response.data
+    assert b"/book/Fall%20Classic" in response.data

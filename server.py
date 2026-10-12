@@ -23,8 +23,8 @@ def isCompetitionPast(competition):
     return date_competition < datetime.now().astimezone()
 
 
-def getUpcomingCompetitions():
-    return [c for c in competitions if not isCompetitionPast(c)]
+def getCompetitionsWithStatus():
+    return [{**c, 'isPast': isCompetitionPast(c)} for c in competitions]
 
 
 app = Flask(__name__)
@@ -50,7 +50,7 @@ def showSummary():
         flash("Désolé, cette adresse e-mail est introuvable.")
         return redirect(url_for('index'))
 
-    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
+    return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
 
 
 @app.route('/book/<competition>/<club>')
@@ -97,7 +97,7 @@ def purchasePlaces():
         bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
         flash('Great-booking complete!')
 
-    return render_template('welcome.html', club=club, competitions=getUpcomingCompetitions())
+    return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
 
 
 @app.route('/points')
