@@ -2,7 +2,7 @@
 
 import pytest
 
-from booking_rules import validateBooking
+from booking_rules import maxBookablePlaces, validateBooking
 
 
 def test_valid_booking_returns_none():
@@ -35,3 +35,16 @@ def test_past_competition_has_priority_over_other_rules():
     # Si plusieurs règles sont violées, la compétition terminée est signalée en premier
     message = validateBooking(-1, 0, 25, 13, True)
     assert "terminée" in message
+
+@pytest.mark.parametrize("alreadyBooked, availablePlaces, clubPoints, expected", [
+    (0, 25, 13, 12),   # la limite de 12 est la plus basse
+    (3, 20, 7, 7),     # les points du club sont la limite
+    (0, 5, 13, 5),     # les places restantes sont la limite
+    (9, 25, 13, 3),    # le cumul déjà réservé réduit le plafond
+    (12, 25, 13, 0),   # plafond atteint : rien de plus à réserver
+    (0, 0, 13, 0),     # compétition complète
+    (0, 25, 0, 0),     # club sans points
+])
+def test_max_bookable_places(alreadyBooked, availablePlaces, clubPoints, expected):
+    # Le plafond est la plus petite des trois limites, sans jamais descendre sous zéro
+    assert maxBookablePlaces(alreadyBooked, availablePlaces, clubPoints) == expected
