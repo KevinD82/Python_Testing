@@ -1,4 +1,4 @@
-"""Tests unitaires - tableau public des points. Branche feature/points-board."""
+"""Tests d'intégration - tableau public des points. Branche feature/points-board."""
 
 
 def test_points_board_accessible_without_login(client):

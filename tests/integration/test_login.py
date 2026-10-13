@@ -1,4 +1,4 @@
-"""Tests unitaires - connexion (login). Branche fix/login-crash."""
+"""Tests d'intégration - connexion (login). Branche fix/login-crash."""
 
 
 def test_index_page_loads(client):
@@ -36,7 +36,7 @@ def test_login_with_unknown_email_redirects_with_error_message(client):
     )
     # Assure que le message d'erreur est affiché sur la page d'accueil
     assert followed.status_code == 200
-    assert "introuvable".encode('utf-8') in followed.data  # noqa: UP012
+    assert b"introuvable" in followed.data
 
 
 def test_login_with_missing_email_field_does_not_crash(client):
@@ -54,13 +54,18 @@ def test_login_with_empty_email_redirects_with_error_message(client):
     assert response.location == '/'
 
 
-def test_welcome_page_hides_past_competitions(client):
-    """Une compétition passée ne doit plus apparaître dans la liste du secrétaire."""
+def test_welcome_page_shows_past_competition_without_booking_link(client):
+    """Une compétition passée reste visible, marquée terminée, sans lien de réservation."""
     from server import competitions
+    # Toutes les compétitions sont à venir sauf celle testée : le test ne dépend pas des données de démonstration
+    for c in competitions:
+        c['date'] = "2099-01-01 10:00:00"
     competition = next(c for c in competitions if c['name'] == 'Spring Festival')
     competition['date'] = "2020-01-01 10:00:00"
 
     response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
     assert response.status_code == 200
-    assert b"Spring Festival" not in response.data
-    assert b"Fall Classic" in response.data
+    assert b"Spring Festival" in response.data
+    assert response.data.count("terminée".encode()) == 1
+    assert b"/book/Spring%20Festival" not in response.data
+    assert b"/book/Fall%20Classic" in response.data

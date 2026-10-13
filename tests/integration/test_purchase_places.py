@@ -1,4 +1,4 @@
-"""Tests unitaires - réservation de places. Branche bug/purchase-places-limits."""
+"""Tests d'intégration - réservation de places. Branche bug/purchase-places-limits."""
 
 
 def get_competition(name):
@@ -53,7 +53,7 @@ def test_cannot_book_more_places_than_available(client):
     )
     # Vérifie que le message traite spécifiquement du manque de places
     assert response.status_code == 200
-    assert "disponibles".encode('utf-8') in response.data.lower()  # noqa: UP012
+    assert b"disponibles" in response.data.lower()
 
     # Vérifie qu'aucun changement n'a été appliqué aux données
     club = get_club('Simply Lift')
@@ -191,7 +191,7 @@ def test_cannot_book_past_competition(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "terminée".encode() in response.data
+    assert "ne peut plus être réservée".encode() in response.data
 
     # Rien ne doit avoir été modifié
     club = get_club('Simply Lift')
@@ -199,10 +199,12 @@ def test_cannot_book_past_competition(client):
     assert int(club['points']) == 13
 
 
-def test_welcome_page_after_booking_hides_past_competitions(client):
-    """Après une réservation, la liste ne doit pas réafficher une compétition passée."""
-    past = get_competition('Spring Festival')
-    past['date'] = "2020-01-01 10:00:00"
+def test_welcome_page_after_booking_shows_past_competition_without_booking_link(client):
+    """Après une réservation, une compétition passée reste visible, sans lien de réservation."""
+    from server import competitions
+    for c in competitions:
+        c['date'] = "2099-01-01 10:00:00"
+    get_competition('Spring Festival')['date'] = "2020-01-01 10:00:00"
 
     response = client.post(
         '/purchasePlaces',
@@ -211,4 +213,7 @@ def test_welcome_page_after_booking_hides_past_competitions(client):
     )
     assert response.status_code == 200
     assert b"complete" in response.data.lower()
-    assert b"Spring Festival" not in response.data
+    assert b"Spring Festival" in response.data
+    assert response.data.count("terminée".encode()) == 1
+    assert b"/book/Spring%20Festival" not in response.data
+    assert b"/book/Fall%20Classic" in response.data
