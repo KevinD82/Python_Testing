@@ -3,7 +3,7 @@ from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
-from booking_rules import validateBooking
+from booking_rules import maxBookablePlaces, validateBooking
 
 
 def loadClubs():
@@ -66,7 +66,19 @@ def book(competition, club):
         flash("Cette compétition est terminée et ne peut plus être réservée.")
         return redirect(url_for('index'))
     
-    return render_template('booking.html', club=foundClub, competition=foundCompetition)
+    alreadyBooked = bookings.get((foundClub['name'], foundCompetition['name']), 0)
+    maxPlaces = maxBookablePlaces(
+        alreadyBooked,
+        int(foundCompetition['numberOfPlaces']),
+        int(foundClub['points']),
+    )
+
+    return render_template(
+        'booking.html',
+        club=foundClub,
+        competition=foundCompetition,
+        maxPlaces=maxPlaces,
+    )
 
 
 @app.route('/purchasePlaces', methods=['POST'])
