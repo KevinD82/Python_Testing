@@ -9,6 +9,11 @@
             "name": "Fall Classic",
             "date": "2099-10-22 13:30:00",
             "numberOfPlaces": "13"
+        },
+        {
+            "name": "Winter Open",
+            "date": "2025-01-18 09:00:00",
+            "numberOfPlaces": "20"
         }
     ]
 }
