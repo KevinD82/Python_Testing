@@ -1,21 +1,32 @@
 import json
+import threading
 from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
 from booking_rules import maxBookablePlaces, validateBooking
 
+CLUBS_FILE = 'clubs.json'
+COMPETITIONS_FILE = 'competitions.json'
 
 def loadClubs():
-    with open('clubs.json') as c:
-         listOfClubs = json.load(c)['clubs']
-         return listOfClubs
+    with open(CLUBS_FILE, encoding='utf-8') as c:
+        return json.load(c)['clubs']
 
 
 def loadCompetitions():
-    with open('competitions.json') as comps:
-         listOfCompetitions = json.load(comps)['competitions']
-         return listOfCompetitions
+    with open(COMPETITIONS_FILE, encoding='utf-8') as comps:
+        return json.load(comps)['competitions']
+
+saveLock = threading.Lock()
+
+
+def saveData():
+    with saveLock:
+        with open(CLUBS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'clubs': clubs}, f, indent=4, ensure_ascii=False)
+        with open(COMPETITIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'competitions': competitions}, f, indent=4, ensure_ascii=False)
 
 
 def isCompetitionPast(competition):
@@ -89,6 +100,7 @@ def purchasePlaces():
     if not competition or not club:
         flash("Une erreur est survenue, veuillez réessayer.")
         return redirect(url_for('index'))
+    
 
     placesRequired = int(request.form['places'])
     alreadyBooked = bookings.get((club['name'], competition['name']), 0)
@@ -107,6 +119,7 @@ def purchasePlaces():
         competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
         club['points'] = int(club['points']) - placesRequired
         bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
+        saveData()
         flash('Great-booking complete!')
 
     return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
