@@ -217,3 +217,17 @@ def test_welcome_page_after_booking_shows_past_competition_without_booking_link(
     assert response.data.count("terminée".encode()) == 1
     assert b"/book/Spring%20Festival" not in response.data
     assert b"/book/Fall%20Classic" in response.data
+
+def test_invalid_places_value_does_not_crash(client):
+    # Un champ vide ou non numérique (requête forgée) ne doit pas provoquer d'erreur 500
+    for value in ('', 'abc'):
+        response = client.post(
+            '/purchasePlaces',
+            data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': value},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"nombre de places valide" in response.data
+
+    # Rien ne doit avoir été modifié
+    assert int(get_club('Simply Lift')['points']) == 13
