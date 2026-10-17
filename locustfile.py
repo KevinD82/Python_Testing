@@ -7,6 +7,11 @@ Exigences des spécifications fonctionnelles (phase 2) :
 - 6 utilisateurs simultanés par défaut (guide de développement, section 5.c).
 
 Lancement :
+Avant chaque test, remettre les données à neuf (les réservations sont enregistrées
+dans les fichiers JSON) :
+    git restore clubs.json competitions.json
+Durée conseillée : environ 15 secondes. Simply Lift ne peut réserver que 12 places
+pour Spring Festival : au-delà, les réservations refusées sont signalées en échec.
     locust -f locustfile.py --host=http://127.0.0.1:5000
 
 Puis ouvrir http://localhost:8089 et configurer :
@@ -50,7 +55,11 @@ class ClubSecretaryUser(HttpUser):
             name="/purchasePlaces (mise à jour des points)",
             catch_response=True,
         ) as response:
-            if response.elapsed.total_seconds() > 2:
+            if "Great-booking complete!" not in response.text:
+                response.failure(
+                    "Réservation refusée (stock ou points épuisés) : relancer avec des données neuves"
+                )
+            elif response.elapsed.total_seconds() > 2:
                 response.failure(
                     f"Trop lent : {response.elapsed.total_seconds():.2f}s (max attendu : 2s)"
                 )
