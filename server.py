@@ -102,7 +102,11 @@ def purchasePlaces():
         return redirect(url_for('index'))
     
 
-    placesRequired = int(request.form['places'])
+    try:
+        placesRequired = int(request.form['places'])
+    except (KeyError, ValueError):
+        flash("Veuillez saisir un nombre de places valide.")
+        return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
     # La vérification et l'enregistrement forment un seul bloc : une réservation à la fois
     with bookingLock:
         alreadyBooked = bookings.get((club['name'], competition['name']), 0)
