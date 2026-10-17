@@ -231,8 +231,8 @@ pytest tests/integration
 ## Couverture de tests
  
 ```bash
-coverage run -m pytest
-coverage report
+coverage run --omit="tests/*" -m pytest
+coverage report -m
 coverage html
 ```
  
