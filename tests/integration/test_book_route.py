@@ -48,3 +48,22 @@ def test_book_page_refused_for_past_competition(client):
     # Suit la redirection pour vérifier le message affiché
     followed = client.get('/book/Spring Festival/Simply Lift', follow_redirects=True)
     assert "terminée".encode() in followed.data
+
+
+def test_book_page_limits_input_to_club_points(client):
+    # Iron Temple n'a que 4 points : le champ ne doit pas accepter plus de 4 places
+    response = client.get('/book/Spring Festival/Iron Temple')
+    assert response.status_code == 200
+    assert b'min="1"' in response.data
+    assert b'max="4"' in response.data
+
+
+def test_book_page_has_no_form_when_nothing_is_bookable(client):
+    # Un club sans points ne doit pas se voir proposer de formulaire
+    from server import clubs
+    club = next(c for c in clubs if c['name'] == 'Iron Temple')
+    club['points'] = 0
+
+    response = client.get('/book/Spring Festival/Iron Temple')
+    assert response.status_code == 200
+    assert b'name="places"' not in response.data
