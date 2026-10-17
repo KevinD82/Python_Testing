@@ -18,11 +18,11 @@ def loadCompetitions():
     with open(COMPETITIONS_FILE, encoding='utf-8') as comps:
         return json.load(comps)['competitions']
 
-saveLock = threading.Lock()
+bookingLock = threading.RLock()
 
 
 def saveData():
-    with saveLock:
+    with bookingLock:
         with open(CLUBS_FILE, 'w', encoding='utf-8') as f:
             json.dump({'clubs': clubs}, f, indent=4, ensure_ascii=False)
         with open(COMPETITIONS_FILE, 'w', encoding='utf-8') as f:
@@ -103,24 +103,26 @@ def purchasePlaces():
     
 
     placesRequired = int(request.form['places'])
-    alreadyBooked = bookings.get((club['name'], competition['name']), 0)
+    # La vérification et l'enregistrement forment un seul bloc : une réservation à la fois
+    with bookingLock:
+        alreadyBooked = bookings.get((club['name'], competition['name']), 0)
 
-    errorMessage = validateBooking(
-        placesRequired,
-        alreadyBooked,
-        int(competition['numberOfPlaces']),
-        int(club['points']),
-        isCompetitionPast(competition),
-    )
+        errorMessage = validateBooking(
+            placesRequired,
+            alreadyBooked,
+            int(competition['numberOfPlaces']),
+            int(club['points']),
+            isCompetitionPast(competition),
+        )
 
-    if errorMessage:
-        flash(errorMessage)
-    else:
-        competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-        club['points'] = int(club['points']) - placesRequired
-        bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
-        saveData()
-        flash('Great-booking complete!')
+        if errorMessage:
+            flash(errorMessage)
+        else:
+            competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
+            club['points'] = int(club['points']) - placesRequired
+            bookings[(club['name'], competition['name'])] = alreadyBooked + placesRequired
+            saveData()
+            flash('Great-booking complete!')
 
     return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
 
