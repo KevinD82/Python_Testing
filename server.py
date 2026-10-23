@@ -143,12 +143,10 @@ def purchasePlaces():
 # Tableau public des points de tous les clubs (lecture seule, sans connexion).
 @app.route('/points')
 def points_board():
-    """Tableau public et en lecture seule des points de tous les clubs.
-    Accessible sans connexion."""
     return render_template('points.html', clubs=clubs)
 
 
-# Déconnexion : renvoie simplement vers l'accueil.
+# Déconnexion 
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
