@@ -9,11 +9,13 @@ from booking_rules import maxBookablePlaces, validateBooking
 CLUBS_FILE = 'clubs.json'
 COMPETITIONS_FILE = 'competitions.json'
 
+# Lit clubs.json et renvoie la liste des clubs.
 def loadClubs():
     with open(CLUBS_FILE, encoding='utf-8') as c:
         return json.load(c)['clubs']
 
 
+# Lit competitions.json et renvoie la liste des compétitions.
 def loadCompetitions():
     with open(COMPETITIONS_FILE, encoding='utf-8') as comps:
         return json.load(comps)['competitions']
@@ -21,6 +23,7 @@ def loadCompetitions():
 bookingLock = threading.RLock()
 
 
+# Réécrit clubs.json et competitions.json avec l'état actuel (sous verrou).
 def saveData():
     with bookingLock:
         with open(CLUBS_FILE, 'w', encoding='utf-8') as f:
@@ -29,11 +32,13 @@ def saveData():
             json.dump({'competitions': competitions}, f, indent=4, ensure_ascii=False)
 
 
+# Renvoie True si la date de la compétition est déjà passée.
 def isCompetitionPast(competition):
     date_competition = datetime.strptime(competition['date'], "%Y-%m-%d %H:%M:%S").astimezone()
     return date_competition < datetime.now().astimezone()
 
 
+# Renvoie une copie des compétitions avec 'isPast', sans toucher à l'original (donc pas écrit dans le JSON).
 def getCompetitionsWithStatus():
     return [{**c, 'isPast': isCompetitionPast(c)} for c in competitions]
 
@@ -48,10 +53,12 @@ clubs = loadClubs()
 # seule requête). Clé : tuple (nom du club, nom de la compétition).
 bookings = {}
 
+# Page d'accueil : formulaire de saisie de l'e-mail.
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Connexion par e-mail : affiche les compétitions, ou un message si l'e-mail est inconnu.
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
     email = request.form['email']
@@ -64,6 +71,7 @@ def showSummary():
     return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
 
 
+# Page de réservation : refuse si inconnu ou passé, sinon calcule le maximum réservable.
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
     foundClub = next((c for c in clubs if c['name'] == club), None)
@@ -92,6 +100,7 @@ def book(competition, club):
     )
 
 
+# Réserve des places : valide les règles sous verrou, met à jour les données, enregistre, puis réaffiche la page.
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
     competition = next((c for c in competitions if c['name'] == request.form['competition']), None)
@@ -131,6 +140,7 @@ def purchasePlaces():
     return render_template('welcome.html', club=club, competitions=getCompetitionsWithStatus())
 
 
+# Tableau public des points de tous les clubs (lecture seule, sans connexion).
 @app.route('/points')
 def points_board():
     """Tableau public et en lecture seule des points de tous les clubs.
@@ -138,7 +148,7 @@ def points_board():
     return render_template('points.html', clubs=clubs)
 
 
+# Déconnexion : renvoie simplement vers l'accueil.
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
-
